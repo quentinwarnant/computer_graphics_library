@@ -1,8 +1,6 @@
-# computer_graphics_library
+# computer graphics library
 My open source computer graphics library including mainly Unity3D shaders to produce VFX
 
+My goal is to create various visual effects through graphics shaders to increase my own experience, and share them freely with anyone who finds them useful.
 
-I'll fill this in later for more context about this project
-
-but short version is:
-I'm making Graphics shaders to teach myself, and they're open source, free to use by anyone
+I only contribute to this repo during my spare time.
