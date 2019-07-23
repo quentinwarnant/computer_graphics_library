@@ -3,6 +3,7 @@
 	Properties
 	{
 		_CellSize ("Cell Size", Vector) = (1,1,1,0)
+		_Offset("OFFSET",Vector) = (1,1,1,1)
 
 	}
 	SubShader
@@ -30,7 +31,7 @@
 			};
 
 			float3 _CellSize;
-
+			float3 _Offset;
 
 			float Random3dTo1d(float3 vec, float3 dotDir = float3(42.04, 21.251, 11.501))
 			{
@@ -61,6 +62,8 @@
 				o.vertex = UnityObjectToClipPos(v.vertex);
 
 				o.worldPos = mul(v.vertex, unity_ObjectToWorld);
+
+				o.worldPos += _Offset;
 				return o;
 			}
 			
