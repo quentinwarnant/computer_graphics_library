@@ -61,12 +61,12 @@
 
                 float speed = _Time.x * 2;
 
-                position = SDF_Rotate(position, speed);
+                position = SDF_Rotate(position, speed * 2);
 
                 position = SDF_Translate(position, offset);
-                position = SDF_Rotate(position, -speed * 2 );
-                float scale = abs ( ( sin(_Time.y * PI) + 2 ) / 3 ) ;
-                position = SDF_Scale(position, scale);
+                position = SDF_Rotate(position, -speed  * 4 );
+                float scale = abs ( ( sin(speed * PI) + 2 ) / 3 ) ;
+                //position = SDF_Scale(position, scale);
 
                 float rectangle1 = SDF_Rectangle(position, float2(3.5,1.4)) * scale;
                 
@@ -84,20 +84,27 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-                // sample the texture
+                
                 fixed4 col;
                 float sdfValue =  scene(i.vertex_WorldPos.xz);
-
+                /*
                 //Anti-aliased distance computation (eg: font)
-                float distanceChanged = fwidth(sdfValue) * 0.5;
-                float majorLineDistance = abs(frac(sdfValue / _DistanceLine + 0.5) - 0.5) * _DistanceLine;
-                float majorLines = smoothstep(_ThicknessLine - distanceChanged, _ThicknessLine + distanceChanged, majorLineDistance);
+                float changeOverHalfDistance = fwidth(sdfValue) * 0.5;
+                sdfValue = smoothstep(changeOverHalfDistance, -changeOverHalfDistance,sdfValue);
 
-                //sdfValue = step(0,sdfValue);
-
-                col.rgb = lerp(_InsideCol, _OutsideCol, step(0,sdfValue) ) * majorLines;
+                col.rgb = lerp(_InsideCol, _OutsideCol, sdfValue ) ;
                 col.a = 1;
+                */
 
+                col = lerp(_InsideCol, _OutsideCol, step(0,sdfValue));
+
+                float changeOverHalfDistance = fwidth(sdfValue) * 0.5;
+//                float majorLineDistance = abs(frac(sdfValue / _DistanceLine + 0.5) - 0.5) * _DistanceLine;
+                float majorLineDistance = abs( frac( (sdfValue / _DistanceLine)  + 0.5) - 0.5 )* _DistanceLine ;
+                float lines = smoothstep( _ThicknessLine-changeOverHalfDistance, _ThicknessLine + changeOverHalfDistance, majorLineDistance);
+                col = col*lines;
+
+                col.a = 1;
                 return col;
             }
             ENDCG

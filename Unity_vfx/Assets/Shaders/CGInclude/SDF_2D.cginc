@@ -46,5 +46,16 @@ fixed SDF_Rectangle(float2 position, float2 size)
     return distanceInside + distanceOutside;
 }
 
+float AA_step(float compValue, float gradient)
+{
+    float halfPixelChange = fwidth(gradient) /2 ; 
+    // [][] pixels , get halfway between them
+    float lowerEdge = compValue - halfPixelChange;
+    float upperEdge = compValue + halfPixelChange;
+    //inverse interpolation
+    float invInterpolation = saturate( (gradient - lowerEdge) / (upperEdge - lowerEdge) );
+
+    return invInterpolation;
+}
 
 #endif
