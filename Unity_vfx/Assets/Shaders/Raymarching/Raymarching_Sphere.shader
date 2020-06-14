@@ -17,6 +17,7 @@
 
             #include "UnityCG.cginc"
 
+           
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -36,37 +37,66 @@
                 return o;
             }
 
-            #define STEPS = 64
-            #define STEP_SIZE = 0.01
-
             bool SphereHit(float3 position, float3 center, float radius)
             {
                 return distance(position, center) < radius;
             }
 
-            float RaymarchingHit(float3 position, float3 direction)
+            bool BoxHit(float3 position, float3 center, float3 size)
             {
-                for(int i = 0; i < 64; i++)
+                float3 halfSize = size / 2;
+                if( (position.x >=  center.x - halfSize.x )   && (position.x <= center.x + halfSize.x)
+                && (position.y >=  center.y - halfSize.y )   && (position.y <= center.y + halfSize.y)
+                && (position.z >=  center.z - halfSize.z )   && (position.z <= center.z + halfSize.z)
+                )
                 {
-                    if( SphereHit(position, float3(0,0,0), 0.5) )
+                    return true;
+                }
+                return false;
+            }
+
+            #define STEPS 128
+            #define STEP_SIZE 0.01
+
+            float3 RaymarchingHit(float3 position, float3 center, float3 direction)
+            {
+
+                for(int i = 0; i < STEPS; i++)
+                {
+                    if( SphereHit(position, center, 0.34) )
                     {
-                        return position;
+                        return (position);
+                    }
+                    else if (BoxHit(position, center, float3(0.3, 1, 0.3) ) )
+                    {
+                        return (position);
                     }
 
-                    position += direction * 0.01;
+                    position += direction * STEP_SIZE;
                 }
 
                 //no hits
-                return 0.0;
+                return float3(0,0,0);
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
+                float3 center = float3(0,0,0);
                 float3 viewDir = normalize(i.vertex_worldSpace - _WorldSpaceCameraPos);
-                float depth = RaymarchingHit(i.vertex_worldSpace, viewDir);
+                float3 depth = RaymarchingHit(i.vertex_worldSpace, center, viewDir);
 
-                fixed4 col;
-                col = fixed4(1,0,0,smoothstep(0,0.001, depth));
+                fixed4 col = fixed4(1,0,0,0);
+                //col = fixed4(depth, depth, depth, depth);//fixed4(1,0,0,smoothstep(0,0.001, depth));
+                float depthLength = length(depth);
+                if( depthLength > 0 )
+                {
+                    col.a = 1;
+                    float3 normal = normalize(depth- center);
+                    float NdotL =  dot(normal, _WorldSpaceLightPos0);
+                    float ambient = 0.2;
+                    float light = saturate(ambient +  max(0, NdotL));
+                    col.rgb = fixed3(1,0,0) * light;
+                }
 
                 return col;
             }
