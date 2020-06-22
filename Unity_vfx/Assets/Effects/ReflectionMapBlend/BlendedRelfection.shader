@@ -32,7 +32,8 @@
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
-                float3 reflectedView : TEXCOORD1;
+                float3 vertexWS : TEXCOORD1;
+                float3 reflectedViewDirWS : TEXCOORD2;
             };
 
             sampler2D _MainTex;
@@ -45,16 +46,15 @@
 
             float3 BoxProjection(float3 direction, float3 position, float3 cubemapPos, float3 boxMin, float3 boxMax)
             {
-                boxMin -= position;
-                boxMax -= position;
+                float3 FirstPlaneIntersect = (boxMax - position) / direction;
+                float3 SecondPlaneIntersect = (boxMin - position) / direction;
+                float3 FurthestPlane = max(FirstPlaneIntersect, SecondPlaneIntersect);
 
-                //box direction & edge comparision
-                float x = (direction.x > 0 ? boxMax.x : boxMin.x) / direction.x;
-                float y = (direction.y > 0 ? boxMax.y : boxMin.y) / direction.y;
-                float z = (direction.z > 0 ? boxMax.z : boxMin.z) / direction.z;
-                float smallestDistance = min(x,min(y,z));
+                float distance = min(min(FurthestPlane.x, FurthestPlane.y), FurthestPlane.z);
+                float3 intersectPos = position + direction * distance;
+                intersectPos -= cubemapPos;
+                return intersectPos;
 
-                return direction * smallestDistance + (position - cubemapPos);
             }
 
             v2f vert (appdata v)
@@ -65,11 +65,10 @@
 
                 float3 normal_worldSpace = UnityObjectToWorldNormal(v.normal);
 
-                float3 vertexWS = mul(unity_ObjectToWorld, v.vertex);
-                float3 viewDir = vertexWS - _WorldSpaceCameraPos;
-                float3 reflectedViewDirWS = reflect( viewDir, normal_worldSpace);
-                o.reflectedView = BoxProjection(reflectedViewDirWS, vertexWS, 
-                                                    unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+                o.vertexWS = mul( unity_ObjectToWorld, v.vertex);
+                float3 viewDirWS = o.vertexWS - _WorldSpaceCameraPos;
+                o.reflectedViewDirWS = reflect( viewDirWS, normal_worldSpace);
+
 
                 return o;
             }
@@ -79,12 +78,15 @@
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
 
+                float3 reflectedView =  BoxProjection(i.reflectedViewDirWS, i.vertexWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
 
-                float4 envSample = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, i.reflectedView);
-                float3 envSampleLDR = DecodeHDR(envSample, unity_SpecCube0_HDR);
+
+                float4 envSample = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, reflectedView);
+               // float3 envSampleLDR = DecodeHDR(envSample, unity_SpecCube0_HDR);
                 col.rgb *= envSample;
 
                 col *= _Color;
+
                 return col;
             }
             ENDCG
