@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Main
-  m_Shader: {fileID: 4800000, guid: 1a0c26a631d7d094fa85c1b921a8e4f8, type: 3}
+  m_Name: Black
+  m_Shader: {fileID: 4800000, guid: f5ad6b7669b2541bfaab3051b27e006b, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -35,16 +35,12 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _DisolveTex:
-        m_Texture: {fileID: 2800000, guid: ac1dbe8739ef7f94c88321b61fca04ad, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: f1dde4e666305924b870f60a44e4b73e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 64af63f7ac18d4a91a3d7c58759f4232, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -55,32 +51,36 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ParallaxDepthTex:
+        m_Texture: {fileID: 2800000, guid: 78c46a972910047fc8fa5d483d6f3186, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
-    - _CullMode: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
-    - _DisolveAmount: 0
-    - _DisolveEdgeSize: 1.5
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
-    - _ObjectSize: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _ParallaxDepthStrength: 0.555
     - _SmoothnessTextureChannel: 0
+    - _SpecularGloss: 1
     - _SpecularHighlights: 1
+    - _SpecularPower: 1
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DisolveCol: {r: 3.519, g: 0.80087584, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _LightCol: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
