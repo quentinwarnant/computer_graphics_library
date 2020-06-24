@@ -1,4 +1,4 @@
-﻿Shader "Q/BlendedRelfection"
+﻿Shader "Q/ReflectionMapPositionCorrected"
 {
     Properties
     {
