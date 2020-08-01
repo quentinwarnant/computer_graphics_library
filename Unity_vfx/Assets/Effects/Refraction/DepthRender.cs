@@ -10,7 +10,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
     {
         public RenderPassEvent When;
         public bool DepthInversed;
-        public Material DepthMaterial;
+        public Shader DepthShader;
     }
 
     class DepthRenderPass : ScriptableRenderPass
@@ -28,6 +28,8 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
 
         RenderTargetIdentifier m_renderTargetIdentifier;
 
+        Material m_depthMaterial;
+
         public DepthRenderPass(string tag, DepthRenderSettings settings)
         {
             m_tag = tag;
@@ -36,6 +38,8 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
             renderPassEvent = settings.When;
 
             m_filteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
+            m_depthMaterial = new Material(settings.DepthShader);
+            
         }
 
         public void Setup(RenderTextureDescriptor cameraTargetDesc, RenderTargetIdentifier renderTargetIdentifier, RenderTargetHandle RThandle)
@@ -59,7 +63,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
             var desc = m_cameraTargetDesc;
             cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height, desc.depthBufferBits, FilterMode.Point);
             ConfigureTarget(m_QDepthTexture.Identifier());
-            ConfigureClear(ClearFlag.All, Color.black);
+            ConfigureClear(ClearFlag.Color, Color.black);
         }
 
         // Here you can implement the rendering logic.
@@ -81,25 +85,27 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
                 cmdBuff.Clear();
                 cmdBuff.name = m_tag;// "Blit Depth backwards";
 
+                //Clear the Depth buffer with inversed value (so we can write GEqual into it)
+                cmdBuff.ClearRenderTarget(true, false, Color.black, m_settings.DepthInversed ? 0.0f : 1.0f);
+                context.ExecuteCommandBuffer(cmdBuff);
+                cmdBuff.Clear();
+
+                //Draw scene with depth material override
                 var sortFlags = renderingData.cameraData.defaultOpaqueSortFlags;
                 var drawSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, sortFlags);
                 drawSettings.perObjectData = PerObjectData.None;
-
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
                 if (cameraData.isStereoEnabled)
                     context.StartMultiEye(camera);
 
+                //4 = LEqual, 7 = GEqual
+                m_depthMaterial.SetFloat("_ZTestMode", m_settings.DepthInversed ? 7 : 4);
+                drawSettings.overrideMaterial = m_depthMaterial;
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_filteringSettings);
 
-                drawSettings.overrideMaterial = m_settings.DepthMaterial;
-
-
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings,
-                    ref m_filteringSettings);
-
-                cmdBuff.SetGlobalTexture("_CameraDepthNormalsTexture2", m_QDepthTexture.id);
-
+                cmdBuff.SetGlobalTexture(m_settings.DepthInversed ? "_DepthTex2" : "_DepthTex1", m_QDepthTexture.id);
 
             }
             context.ExecuteCommandBuffer(cmdBuff);
@@ -125,7 +131,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
 
     public override void Create()
     {
-        m_rthandle.Init("QDepthTex");
+        m_rthandle.Init("CustomDepthTex_" + (settings.DepthInversed ? "Inv" : "Reg" ));
         m_scriptablePass = new DepthRenderPass(name, settings);
     }
     

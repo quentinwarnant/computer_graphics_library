@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: NewTESTDepthNormalRendererFeature
   m_EditorClassIdentifier: 
   m_Active: 0
+  depthNormalsMaterial: {fileID: 0}
 --- !u!114 &-3444612637792894928
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29,7 +30,7 @@ MonoBehaviour:
   settings:
     When: 500
     DepthInversed: 1
-    DepthMaterial: {fileID: 2100000, guid: 7611d3c73557f47bbb1c77e051d5fa45, type: 2}
+    DepthShader: {fileID: 4800000, guid: 34d05f280cef14dd6938ec00ff3e7ecb, type: 3}
 --- !u!114 &-69683938277032588
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -83,9 +84,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RendererFeatures:
   - {fileID: -3444612637792894928}
+  - {fileID: 393829452044378335}
+  - {fileID: 5874083618001890432}
   - {fileID: -69683938277032588}
-  - {fileID: -4644293942763010902}
-  m_RendererFeatureMap: 747d72ccd36e08ffaac41cfd43278cbf
+  m_RendererFeatureMap: 308088670e4732d0df2031cfcc29770580acf1a7edef8451747d72ccd36e08ff
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
@@ -108,3 +110,40 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
+--- !u!114 &393829452044378335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c68eb8ad5c5324ab5ba24c5cb1bb61b5, type: 3}
+  m_Name: RegularDepthRender
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    When: 500
+    DepthInversed: 0
+    DepthShader: {fileID: 4800000, guid: 34d05f280cef14dd6938ec00ff3e7ecb, type: 3}
+--- !u!114 &5874083618001890432
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a94bfdd9c4d14f4aa3516391588f3a3, type: 3}
+  m_Name: DepthCalcFromTwoDepthBuffers
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    When: 500
+    DepthTex1Name: _DepthTex1
+    DepthTex2Name: _DepthTex2
+    DepthTexCombinedName: _DepthDistanceTex
+    DepthShader: {fileID: 4800000, guid: 34d05f280cef14dd6938ec00ff3e7ecb, type: 3}
+    Pass: 1
