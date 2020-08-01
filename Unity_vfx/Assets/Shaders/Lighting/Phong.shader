@@ -15,7 +15,7 @@
 
 		Pass
 		{
-			Tags{ "LightMode" = "ForwardBase" "RenderType"="Opaque" }
+			Tags{ "RenderType"="Opaque"  "RenderPipeline" = "UniversalRenderPipeline" "LightMode" = "UniversalForward" }
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
