@@ -61,7 +61,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var desc = m_cameraTargetDesc;
-            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height);
+            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height, cameraTextureDescriptor.depthBufferBits, FilterMode.Point);
             ConfigureTarget(m_QDepthTexture.Identifier());
             ConfigureClear(ClearFlag.Color, Color.black);
         }
@@ -74,11 +74,6 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         {
             CommandBuffer cmdBuff = CommandBufferPool.Get(m_tag);
 
-            //cmdBuff.name = "testQ";
-            //cmdBuff.Blit(m_renderTargetIdentifier, m_QDepthTexture.Identifier(), m_settings.DepthMaterial);
-            //context.ExecuteCommandBuffer(cmdBuff);
-            //cmdBuff.Clear();
-
             using (new ProfilingSample(cmdBuff, m_tag))
             {
                 context.ExecuteCommandBuffer(cmdBuff);
@@ -86,7 +81,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
                 cmdBuff.name = m_tag;// "Blit Depth backwards";
 
                 //Clear the Depth buffer with inversed value (so we can write GEqual into it)
-                cmdBuff.ClearRenderTarget(true, false, Color.black, m_settings.DepthInversed ? 0.0f : 1.0f);
+                cmdBuff.ClearRenderTarget(true, false, Color.black, m_settings.DepthInversed ? 1.0f : 1.0f);
                 context.ExecuteCommandBuffer(cmdBuff);
                 cmdBuff.Clear();
 
@@ -101,9 +96,9 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
                     context.StartMultiEye(camera);
 
                 //4 = LEqual, 7 = GEqual
-//                m_depthMaterial.SetFloat("_ZTestMode", m_settings.DepthInversed ? 7 : 4);
+                m_depthMaterial.SetFloat("_ZTestMode", m_settings.DepthInversed ? 7 : 4);
                 m_depthMaterial.SetFloat("_CullMode", m_settings.DepthInversed ? 1 : 2);
-                m_depthMaterial.SetFloat("_InverseDepthVal", m_settings.DepthInversed ? 1 : 0);
+               // m_depthMaterial.SetFloat("_InverseDepthVal", m_settings.DepthInversed ? 1 : 0);
 
                 drawSettings.overrideMaterial = m_depthMaterial;
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_filteringSettings);

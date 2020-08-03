@@ -15,9 +15,9 @@
 			LOD 100
 
 			ZWrite On
-			ZTest GEqual //[_ZTestMode]
+
+			ZTest LEqual//[_ZTestMode]
 			Cull [_CullMode]
-			//ColorMask 0
 
             CGPROGRAM
             #pragma vertex vert
@@ -33,32 +33,29 @@
 
             struct v2f
             {
-                float4 vertex : SV_POSITION;
-				float depth : TEXCOORD0;
+                float4 pos : SV_POSITION;
+				float4 worldPos: TEXCOORD0;
             };
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
 			float _ZTestMode;
-			float _InverseDepthVal;
 
             v2f vert (appdata v)
             {
                 v2f o;
-                o.vertex =  UnityObjectToClipPos(v.vertex);
-				//COMPUTE_EYEDEPTH(o.depth);
+                o.pos =  UnityObjectToClipPos(v.vertex);
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 
-                o.depth = COMPUTE_DEPTH_01;
-                return o;
+				return o;
             }
 
             fixed4 frag (v2f i) : SV_Target
             {
-
-				float depth = LinearEyeDepth(i.depth); // LinearEyeDepth / Linear01Depth
-
-				return fixed4(depth,0,0,1);
+				fixed maxDist = 4;
+				float depth = 1 - (min(length(_WorldSpaceCameraPos - i.worldPos.xyz ),maxDist) / maxDist); 
+				return fixed4(depth.x,0,0,1);
             }
             ENDCG
         }
@@ -70,8 +67,8 @@
 			Tags { "RenderType" = "Opaque" }
 			LOD 100
 
-			ZWrite On
-			ZTest LEqual
+			//ZWrite On
+			//ZTest LEqual
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -93,7 +90,7 @@
 
 			struct fragOut {
 				float4 color: SV_Target;
-				//float depth : SV_Depth;
+				float depth : SV_Depth;
 			};
 
 			sampler2D _DepthTex1;
@@ -112,14 +109,11 @@
 				float depth1 = tex2D(_DepthTex1,i.uv).r;
 				float depth2 = tex2D(_DepthTex2,i.uv).r;
 
-				//depth1 = LinearEyeDepth(depth1);
-				//depth2 = LinearEyeDepth(depth2);
-
 				fixed depth = (depth1 - depth2);
 			
 				fixed4 col = fixed4(depth.xxx,1);
 				fragOut o;
-				//o.depth = depth;
+				o.depth = depth;
 				o.color = col;
 				
 				return o;
