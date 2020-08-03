@@ -23,16 +23,8 @@ public class RenderFeature_DepthCalcFromTwoDepthBuffers : UnityEngine.Rendering.
         RenderFeature_DepthCalcFromTwoDepthBuffersSettings m_settings; 
 
         RenderTargetHandle m_combinedDepthTextureHandle;
-
         RenderTextureDescriptor m_cameraTargetDesc;
-
-        DrawingSettings m_drawingSettings;
-        FilteringSettings m_filteringSettings;
-
-        ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
-
         RenderTargetIdentifier m_renderTargetIdentifier;
-
         Material m_depthMaterial;
 
         public DepthCalcFromTwoDepthBuffersPass(string tag, RenderFeature_DepthCalcFromTwoDepthBuffersSettings settings)
@@ -46,13 +38,11 @@ public class RenderFeature_DepthCalcFromTwoDepthBuffers : UnityEngine.Rendering.
             
         }
 
-        public void Setup(RenderTextureDescriptor cameraTargetDesc, RenderTargetIdentifier renderTargetIdentifier, RenderTargetHandle RThandle)
+        public void Setup(RenderTextureDescriptor cameraTargetDesc, RenderTargetHandle RThandle)
         {
             m_cameraTargetDesc = cameraTargetDesc;
             m_cameraTargetDesc.colorFormat = RenderTextureFormat.ARGB32;
-            m_cameraTargetDesc.depthBufferBits = 32;
 
-            m_renderTargetIdentifier = renderTargetIdentifier;
             m_combinedDepthTextureHandle = RThandle;
         }
 
@@ -64,8 +54,10 @@ public class RenderFeature_DepthCalcFromTwoDepthBuffers : UnityEngine.Rendering.
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var desc = m_cameraTargetDesc;
-            cmd.GetTemporaryRT(m_combinedDepthTextureHandle.id, desc.width, desc.height, desc.depthBufferBits, FilterMode.Point);
+            cmd.GetTemporaryRT(m_combinedDepthTextureHandle.id, desc.width, desc.height);
             ConfigureTarget(m_combinedDepthTextureHandle.Identifier());
+            ConfigureClear(ClearFlag.Depth, Color.black);
+
         }
 
         // Here you can implement the rendering logic.
@@ -120,9 +112,8 @@ public class RenderFeature_DepthCalcFromTwoDepthBuffers : UnityEngine.Rendering.
     // This method is called when setting up the renderer once per-camera.
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        var cameraTargetIdentifier = renderer.cameraColorTarget;
         var cameraTargetDesc = renderingData.cameraData.cameraTargetDescriptor;
-        m_scriptablePass.Setup(cameraTargetDesc, cameraTargetIdentifier, m_rthandle);
+        m_scriptablePass.Setup(cameraTargetDesc, m_rthandle);
         renderer.EnqueuePass(m_scriptablePass);
     }
 }

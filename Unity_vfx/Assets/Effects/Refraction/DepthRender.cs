@@ -46,7 +46,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         {
             m_cameraTargetDesc = cameraTargetDesc;
             m_cameraTargetDesc.colorFormat = RenderTextureFormat.ARGB32;
-            m_cameraTargetDesc.depthBufferBits = 32;
+            //m_cameraTargetDesc.depthBufferBits = 32;
 
             m_renderTargetIdentifier = renderTargetIdentifier;
             m_QDepthTexture = RThandle;
@@ -61,7 +61,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var desc = m_cameraTargetDesc;
-            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height, desc.depthBufferBits, FilterMode.Point);
+            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height);
             ConfigureTarget(m_QDepthTexture.Identifier());
             ConfigureClear(ClearFlag.Color, Color.black);
         }
@@ -101,7 +101,10 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
                     context.StartMultiEye(camera);
 
                 //4 = LEqual, 7 = GEqual
-                m_depthMaterial.SetFloat("_ZTestMode", m_settings.DepthInversed ? 7 : 4);
+//                m_depthMaterial.SetFloat("_ZTestMode", m_settings.DepthInversed ? 7 : 4);
+                m_depthMaterial.SetFloat("_CullMode", m_settings.DepthInversed ? 1 : 2);
+                m_depthMaterial.SetFloat("_InverseDepthVal", m_settings.DepthInversed ? 1 : 0);
+
                 drawSettings.overrideMaterial = m_depthMaterial;
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_filteringSettings);
 
