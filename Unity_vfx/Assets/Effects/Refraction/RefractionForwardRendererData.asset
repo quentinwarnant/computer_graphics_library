@@ -28,7 +28,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    When: 500
+    When: 250
     DepthInversed: 1
     DepthShader: {fileID: 4800000, guid: 34d05f280cef14dd6938ec00ff3e7ecb, type: 3}
 --- !u!114 &-69683938277032588
@@ -124,7 +124,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    When: 500
+    When: 250
     DepthInversed: 0
     DepthShader: {fileID: 4800000, guid: 34d05f280cef14dd6938ec00ff3e7ecb, type: 3}
 --- !u!114 &5874083618001890432
@@ -141,9 +141,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    When: 500
-    DepthTex1Name: _DepthTex1
-    DepthTex2Name: _DepthTex2
-    DepthTexCombinedName: _DepthDistanceTex
+    When: 250
+    DepthTex1Name: _DepthNormalTexFront
+    DepthTex2Name: _DepthNormalTexBack
+    DepthTexCombinedName: _NormalAndDepthTex
     DepthShader: {fileID: 4800000, guid: 34d05f280cef14dd6938ec00ff3e7ecb, type: 3}
     Pass: 1

@@ -54,7 +54,7 @@ public class RenderFeature_DepthCalcFromTwoDepthBuffers : UnityEngine.Rendering.
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var desc = m_cameraTargetDesc;
-            cmd.GetTemporaryRT(m_combinedDepthTextureHandle.id, desc.width, desc.height, cameraTextureDescriptor.depthBufferBits, FilterMode.Point);
+            cmd.GetTemporaryRT(m_combinedDepthTextureHandle.id, desc.width, desc.height);
             ConfigureTarget(m_combinedDepthTextureHandle.Identifier());
             ConfigureClear(ClearFlag.Depth, Color.black);
 

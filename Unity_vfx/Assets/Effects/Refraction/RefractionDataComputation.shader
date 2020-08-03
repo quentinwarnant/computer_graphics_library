@@ -1,4 +1,4 @@
-﻿Shader "Q/Refraction"
+﻿Shader "Q/Refraction/RefractionDataComputation"
 {
     Properties
     {
@@ -35,6 +35,7 @@
             {
                 float4 pos : SV_POSITION;
 				float4 worldPos: TEXCOORD0;
+				float3 worldNormal: TEXCOORD1;
             };
 
             sampler2D _MainTex;
@@ -47,6 +48,7 @@
                 v2f o;
                 o.pos =  UnityObjectToClipPos(v.vertex);
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				o.worldNormal = mul(unity_ObjectToWorld, float4(v.normal,0)).xyz;
 
 				return o;
             }
@@ -55,7 +57,7 @@
             {
 				fixed maxDist = 4;
 				float depth = 1 - (min(length(_WorldSpaceCameraPos - i.worldPos.xyz ),maxDist) / maxDist); 
-				return fixed4(depth.x,0,0,1);
+				return fixed4(i.worldNormal.xyz,depth.x);
             }
             ENDCG
         }
@@ -66,9 +68,6 @@
 
 			Tags { "RenderType" = "Opaque" }
 			LOD 100
-
-			//ZWrite On
-			//ZTest LEqual
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -88,13 +87,13 @@
 				float2 uv: TEXCOORD0;
 			};
 
-			struct fragOut {
-				float4 color: SV_Target;
-				float depth : SV_Depth;
-			};
+			//struct fragOut {
+			//	float4 color: SV_Target;
+			//	float depth : SV_Depth;
+			//};
 
-			sampler2D _DepthTex1;
-			sampler2D _DepthTex2;
+			sampler2D _DepthNormalTexFront;
+			sampler2D _DepthNormalTexBack;
 
 			v2f vert(appdata v)
 			{
@@ -104,19 +103,17 @@
 				return o;
 			}
 
-			fragOut frag(v2f i)
+			float4 frag(v2f i) : SV_Target
 			{
-				float depth1 = tex2D(_DepthTex1,i.uv).r;
-				float depth2 = tex2D(_DepthTex2,i.uv).r;
+				float4 normalAndDepthFront = tex2D(_DepthNormalTexFront,i.uv);
+				float4 normalAndDepthBack = tex2D(_DepthNormalTexBack,i.uv);
 
-				fixed depth = (depth1 - depth2);
-			
-				fixed4 col = fixed4(depth.xxx,1);
-				fragOut o;
-				o.depth = depth;
-				o.color = col;
+				fixed depth = (normalAndDepthFront.a - normalAndDepthBack.a);
 				
-				return o;
+			
+				fixed4 col = fixed4(normalAndDepthFront.xyz,depth);
+				
+				return col;
 			}
 			ENDCG
 		}

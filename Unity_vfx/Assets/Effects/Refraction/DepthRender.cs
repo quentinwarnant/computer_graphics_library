@@ -24,7 +24,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         DrawingSettings m_drawingSettings;
         FilteringSettings m_filteringSettings;
 
-        ShaderTagId m_ShaderTagId = new ShaderTagId("DepthOnly");
+        ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalForward");
 
         RenderTargetIdentifier m_renderTargetIdentifier;
 
@@ -61,7 +61,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var desc = m_cameraTargetDesc;
-            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height, cameraTextureDescriptor.depthBufferBits, FilterMode.Point);
+            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height);
             ConfigureTarget(m_QDepthTexture.Identifier());
             ConfigureClear(ClearFlag.Color, Color.black);
         }
@@ -103,7 +103,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
                 drawSettings.overrideMaterial = m_depthMaterial;
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_filteringSettings);
 
-                cmdBuff.SetGlobalTexture(m_settings.DepthInversed ? "_DepthTex2" : "_DepthTex1", m_QDepthTexture.id);
+                cmdBuff.SetGlobalTexture(m_settings.DepthInversed ? "_DepthNormalTexBack" : "_DepthNormalTexFront", m_QDepthTexture.id);
 
             }
             context.ExecuteCommandBuffer(cmdBuff);
