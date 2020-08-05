@@ -23,7 +23,7 @@ public class GlobalTexturePreviewer : EditorWindow
 
         if (m_tex != null)
         {
-            GUILayout.Box(m_tex);
+            GUILayout.Box(m_tex, GUILayout.Width(512), GUILayout.Height(512));
         }
     }
 }

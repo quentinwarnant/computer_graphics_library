@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 public class Rotator3D : MonoBehaviour
 {
     [SerializeField]    Vector3 m_rotationDir;
