@@ -61,7 +61,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             var desc = m_cameraTargetDesc;
-            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height);
+            cmd.GetTemporaryRT(m_QDepthTexture.id, desc.width, desc.height, cameraTextureDescriptor.depthBufferBits, FilterMode.Point);
             ConfigureTarget(m_QDepthTexture.Identifier());
             ConfigureClear(ClearFlag.Color, Color.black);
         }
