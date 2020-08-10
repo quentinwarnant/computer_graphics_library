@@ -2,8 +2,8 @@
 {
     Properties
     {
-        _RefractionIndex ("Index of Refraction", Range(0,2)) = 1.0
-        _Test ("Test Value", Range(0,1)) = 1.0
+        _RefractionIndexOutside ("Index of Refraction Outside", Range(.85,1)) = 1.0
+        _RefractionIndexInside ("Index of Refraction Inside", Range(.85,1)) = 1.0
 
         _Skybox("Skybox",Cube) = "defaulttexture" {}
     }
@@ -37,22 +37,17 @@
                 float3 uv : TEXCOORD3;
             };
 
-
-            sampler2D CustomDepthTex_Inv;
-            sampler2D CustomDepthTex_Reg;
-
-            //combined
             sampler2D _NormalAndDepthTex;
             
-
+            fixed _RefractionIndexOutside;
+            fixed _RefractionIndexInside;
             samplerCUBE _Skybox;
-
-            fixed _RefractionIndex;
-            fixed _Test;
 
             float DistanceAlongNormal(float3 worldPos)
             {
-                return 1;
+                //Constant depth approximation, real value could be precalculated and baked into a "thickness along negative normal" texture,
+                //But results are actually pretty decent ! 
+                return 4;
             }
 
 
@@ -83,12 +78,10 @@
                 float4 screenCoord = i.scrPos;
                 float2 screenUV = screenCoord.xy / screenCoord.w;
 
-                fixed4 normalDepthInv = tex2D(CustomDepthTex_Reg, screenUV);
                 fixed4 dataTex = tex2D(_NormalAndDepthTex, screenUV); 
                 //fixed4 dataTex = tex2D(_NormalAndDepthTex, UNITY_PROJ_COORD(screenCoord)); 
                 //col.xyz = dataTex.wwww;
 
-                float3 worldPos = i.worldPos;
                 float3 viewDir = normalize(i.viewDir_WS);
                 float3 normal_WS = normalize(i.worldNormal);
                 float3 invNormal_WS = -normal_WS;
@@ -98,32 +91,26 @@
                 //Behaviour of a refracted ray according to Snells law: ni * Sin( Angle of incidence) = nt * Sin( Angle ot transmittance)
                 // ie, transmitted angle = arcsin( (ni * sin(angle of incidence) / nt );
 
-                float ni = _RefractionIndex;
-                float nt = 1.2;
+                float ni = _RefractionIndexOutside;
+                float nt = _RefractionIndexInside;
 
                 float3 incidentDir = viewDir;
-                //float angleOfIncidence = acos( dot(incidentDir, normal_WS));
-                //float angleOfTransmission = arcsin( (ni * sin(angleOfIncidence) / nt);
 
-
-                // P1 = i.worldPos
-                // P2 = P1 + d*T1
-                // T1 = first refracted view dir , interpolation between dV (view dir) & dN (inverted normal)
-                // d = distance, which is calculated from _NormalAndDepthTex
+                float3 P1 = i.worldPos;
                 
-                float3 T1 = refract(incidentDir, lerp( incidentDir, invNormal_WS, _Test ), ni);
+                float3 T1 = refract(incidentDir, normal_WS, ni);
                 float dv = dataTex.a;
                 float dn = DistanceAlongNormal(i.worldPos);
+                float angleDiff = dot(T1, invNormal_WS) / dot(viewDir, normal_WS);
+                float d = ( angleDiff * dv ) + ((1-angleDiff)*dn );
 
+                float3 P2 = P1 + (normalize(T1) * d);
+                float4 P2screenPos =  mul(UNITY_MATRIX_VP, float4(P2,1));
+                float4 P2screenCoord = UNITY_PROJ_COORD( ComputeScreenPos(P2screenPos) );
+                float3 N2 = tex2Dproj(_NormalAndDepthTex, P2screenCoord).rgb;
+                float3 T2 = refract(T1, N2, nt);
 
-                //float3 P2 = 
-
-                // TODO: use viewDIR to sample normal and depth Tex
-                //col.xyz = normalize(i.viewDir_WS);
-
-
-                col.rgb = texCUBE(_Skybox, T1 );
-                //col.rgb = normalDepthInv.aaa;
+                col.rgb = texCUBE(_Skybox, T2 );
                 col.a = 1;
                 return col;
             }
@@ -131,3 +118,20 @@
         }
     }
 }
+
+/*
+
+
+for all fragments F (given P1, V~ , and N~1), do
+V    T~1 = Refract( V~ , N~1 )
+V    dV~ = DistanceFrontFaceToBackFace( F , BackfaceZBuf )
+    dN~ = DistanceAlongNormal( P1 )
+    d˜ =WeightDistance( −N~1 ·T~1, V~ ·T~1, dV~ , dN~ )
+    P˜2 = P1 + d˜T~1
+    texfar = ProjectToScreenSpace( P˜2 )
+    N~2 ≈ TextureLookup( texfar, BackfaceNormals )
+    T~2 ≈ Refract( T~1, N~2 )
+    return IndexEnvironmentMap( T~2 )
+
+*/
+
