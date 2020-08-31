@@ -104,6 +104,6 @@ MonoBehaviour:
     When: 250
     DepthTex1Name: _DepthNormalTexFront
     DepthTex2Name: _DepthNormalTexBack
-    DepthTexCombinedName: _NormalAndDepthTex
+    DepthTexCombinedName: _NormalFrontAndDepthTex
     DepthShader: {fileID: 4800000, guid: 34d05f280cef14dd6938ec00ff3e7ecb, type: 3}
     Pass: 1

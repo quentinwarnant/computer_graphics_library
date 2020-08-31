@@ -2,10 +2,11 @@
 {
     Properties
     {
-        _RefractionIndexOutside ("Index of Refraction Outside", Range(.85,1)) = 1.0
-        _RefractionIndexInside ("Index of Refraction Inside", Range(.85,1)) = 1.0
+        _RefractionIndexOutside ("Index of Refraction Outside", Range(.0,2)) = 1.0
+        _RefractionIndexInside ("Index of Refraction Inside", Range(.0,2)) = 1.0
 
         _Skybox("Skybox",Cube) = "defaulttexture" {}
+        _TicknessAlongNormal("TicknessAlongNormal",float) = 4 
     }
     SubShader
     {
@@ -35,19 +36,23 @@
                 float3 viewDir_WS : TEXCOORD1;
                 float4 scrPos : TEXCOORD2;
                 float3 uv : TEXCOORD3;
+                float4 originWS : TEXCOORD4;
             };
 
-            sampler2D _NormalAndDepthTex;
+            sampler2D _NormalFrontAndDepthTex;
+            sampler2D _DepthNormalTexBack;
             
             fixed _RefractionIndexOutside;
             fixed _RefractionIndexInside;
             samplerCUBE _Skybox;
 
+            float _TicknessAlongNormal;
+
             float DistanceAlongNormal(float3 worldPos)
             {
                 //Constant depth approximation, real value could be precalculated and baked into a "thickness along negative normal" texture,
                 //But results are actually pretty decent ! 
-                return 4;
+                return _TicknessAlongNormal;
             }
 
 
@@ -66,6 +71,7 @@
 
                 o.worldNormal = worldNormal;
                 o.worldPos = worldPos;
+                o.originWS = mul(unity_ObjectToWorld, float4(0,0,0,1));
     
 
                 return o;
@@ -78,37 +84,39 @@
                 float4 screenCoord = i.scrPos;
                 float2 screenUV = screenCoord.xy / screenCoord.w;
 
-                fixed4 dataTex = tex2D(_NormalAndDepthTex, screenUV); 
-                //fixed4 dataTex = tex2D(_NormalAndDepthTex, UNITY_PROJ_COORD(screenCoord)); 
-                //col.xyz = dataTex.wwww;
+                fixed4 dataTex = tex2D(_NormalFrontAndDepthTex, screenUV); 
 
                 float3 viewDir = normalize(i.viewDir_WS);
                 float3 normal_WS = normalize(i.worldNormal);
                 float3 invNormal_WS = -normal_WS;
 
-                //ni = index of refraction in incident medium (exterrior, ie: air)
                 //nt = index of refraction in transmitted medium (interrior, ie: glass)
+                //ni = index of refraction in incident medium (exterrior, ie: air)
                 //Behaviour of a refracted ray according to Snells law: ni * Sin( Angle of incidence) = nt * Sin( Angle ot transmittance)
                 // ie, transmitted angle = arcsin( (ni * sin(angle of incidence) / nt );
 
-                float ni = _RefractionIndexOutside;
                 float nt = _RefractionIndexInside;
+                float ni = _RefractionIndexOutside;
 
                 float3 incidentDir = viewDir;
 
                 float3 P1 = i.worldPos;
                 
-                float3 T1 = refract(incidentDir, normal_WS, ni);
+                float3 T1 = normalize(refract(incidentDir, normal_WS, ni/nt));
                 float dv = dataTex.a;
                 float dn = DistanceAlongNormal(i.worldPos);
-                float angleDiff = dot(T1, invNormal_WS) / dot(viewDir, normal_WS);
-                float d = ( angleDiff * dv ) + ((1-angleDiff)*dn );
+                float angleDiff = dot(T1, invNormal_WS) / dot(incidentDir, normal_WS);
+                float d = lerp( dv ,dn, angleDiff );
 
-                float3 P2 = P1 + (normalize(T1) * d);
+                float3 P2 = P1 + (T1 * d);
                 float4 P2screenPos =  mul(UNITY_MATRIX_VP, float4(P2,1));
-                float4 P2screenCoord = UNITY_PROJ_COORD( ComputeScreenPos(P2screenPos) );
-                float3 N2 = tex2Dproj(_NormalAndDepthTex, P2screenCoord).rgb;
-                float3 T2 = refract(T1, N2, nt);
+                float4 P2screenCoord = ComputeScreenPos(P2screenPos);
+                float3 N2 = tex2D(_DepthNormalTexBack, P2screenCoord.xy / P2screenCoord.w).rgb;
+                N2 = (N2 * 2) -1;
+
+                N2 = P2 - i.originWS; //TEST - find normal for a sphere (for debugging purposes)
+
+                float3 T2 = refract(T1, N2, nt/ni);
 
                 col.rgb = texCUBE(_Skybox, T2 );
                 col.a = 1;

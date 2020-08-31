@@ -57,7 +57,7 @@
             {
 				fixed maxDist = 4;
 				float depth = 1 - (min(length(_WorldSpaceCameraPos - i.worldPos.xyz ),maxDist) / maxDist); 
-				return fixed4(i.worldNormal.xyz,depth.x);
+				return fixed4((normalize(i.worldNormal).xyz + 1 ) /2,depth.x);
             }
             ENDCG
         }
@@ -108,7 +108,7 @@
 				float4 normalAndDepthFront = tex2D(_DepthNormalTexFront,i.uv);
 				float4 normalAndDepthBack = tex2D(_DepthNormalTexBack,i.uv);
 
-				fixed depth = (normalAndDepthFront.a - normalAndDepthBack.a);
+				fixed depth = pow( (normalAndDepthFront.a - normalAndDepthBack.a),2) ;
 				
 			
 				fixed4 col = fixed4(normalAndDepthFront.xyz,depth);

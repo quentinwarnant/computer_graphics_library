@@ -68,8 +68,8 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _RefractionIndex: 0.956
-    - _RefractionIndexInside: 0.959
-    - _RefractionIndexOutside: 0.957
+    - _RefractionIndexInside: 1.144
+    - _RefractionIndexOutside: 1.003
     - _Shininess: 0
     - _Smoothness: 0.5
     - _SmoothnessSource: 0
@@ -79,6 +79,7 @@ Material:
     - _SrcBlend: 1
     - _Surface: 0
     - _Test: 1
+    - _TicknessAlongNormal: 1
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
