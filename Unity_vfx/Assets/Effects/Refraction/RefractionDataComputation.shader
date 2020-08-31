@@ -108,9 +108,7 @@
 				float4 normalAndDepthFront = tex2D(_DepthNormalTexFront,i.uv);
 				float4 normalAndDepthBack = tex2D(_DepthNormalTexBack,i.uv);
 
-				fixed depth = pow( (normalAndDepthFront.a - normalAndDepthBack.a),2) ;
-				
-			
+				fixed depth = (normalAndDepthFront.a - normalAndDepthBack.a);
 				fixed4 col = fixed4(normalAndDepthFront.xyz,depth);
 				
 				return col;

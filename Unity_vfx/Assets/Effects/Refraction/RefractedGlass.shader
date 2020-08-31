@@ -6,7 +6,7 @@
         _RefractionIndexInside ("Index of Refraction Inside", Range(.0,2)) = 1.0
 
         _Skybox("Skybox",Cube) = "defaulttexture" {}
-        _TicknessAlongNormal("TicknessAlongNormal",float) = 4 
+        _TicknessAlongNormal("TicknessAlongNormal",float) = 4
     }
     SubShader
     {
@@ -105,7 +105,9 @@
                 float3 T1 = normalize(refract(incidentDir, normal_WS, ni/nt));
                 float dv = dataTex.a;
                 float dn = DistanceAlongNormal(i.worldPos);
-                float angleDiff = dot(T1, invNormal_WS) / dot(incidentDir, normal_WS);
+                float incidentAngle = dot(incidentDir, normal_WS);
+
+                float angleDiff = dot(T1, invNormal_WS) / incidentAngle;
                 float d = lerp( dv ,dn, angleDiff );
 
                 float3 P2 = P1 + (T1 * d);
@@ -114,9 +116,29 @@
                 float3 N2 = tex2D(_DepthNormalTexBack, P2screenCoord.xy / P2screenCoord.w).rgb;
                 N2 = (N2 * 2) -1;
 
-                N2 = P2 - i.originWS; //TEST - find normal for a sphere (for debugging purposes)
 
-                float3 T2 = refract(T1, N2, nt/ni);
+
+                //To address total internal refraction (TIR), we disallow angles > critical angle (for TIR)
+
+
+                float3 T2;
+                
+                if(incidentAngle < 0.1){
+                    //N2 = T1 - (dot(incidentDir,T1 ) * incidentDir);
+                    T2 = reflect(T1,N2);
+                }
+                else
+                {
+                    T2 = refract(T1, N2, nt/ni);
+                }
+/*
+                if( N2.x < 0.01 && N2.y < 0.01 && N2.z < 0.01) //no normal
+                {
+                    N2 = -normal_WS;
+                }
+*/
+               // N2 = P2 - i.originWS; //TEST - find normal for a sphere (for debugging purposes)
+
 
                 col.rgb = texCUBE(_Skybox, T2 );
                 col.a = 1;
