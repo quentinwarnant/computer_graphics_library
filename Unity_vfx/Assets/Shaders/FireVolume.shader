@@ -83,10 +83,11 @@ Shader "Q/FireVolume"
 
 				fixed4 col1 = tex2D(_MainTex, i.uvWithOffsets.xy + uvDistortion);
 				fixed4 col2 = tex2D(_MainTex, i.uvWithOffsets.zw + uvDistortion);
+				fixed4 col3 = tex2D(_MainTex, i.uvWithOffsets.xw + uvDistortion);
 
 //				fixed4 col = (col1 + col2)  / (2 -_Intensity);
 //				fixed4 col = lerp(col1, col2, uvDistortionSample.r +1 );
-				fixed4 col = max(col1, col2);
+				fixed4 col = max(max(col1, col2), col3);
 				
 				col *= _Intensity;
 

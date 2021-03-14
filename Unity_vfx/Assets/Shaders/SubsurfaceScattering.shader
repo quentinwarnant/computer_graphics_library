@@ -62,7 +62,7 @@ Shader "Q/SubsurfaceScattering"
 				float3 vertexWorldPos = mul(v.vertex, unity_ObjectToWorld);
 				o.viewDir =  _WorldSpaceCameraPos - vertexWorldPos;
 				o.normalWorld = UnityObjectToWorldNormal(v.normal);
-				float3 lightDir = normalize(-_WorldSpaceLightPos0.xyz);
+				float3 lightDir = normalize(_WorldSpaceLightPos0.xyz);
 				//float3 lightDir = normalize( _WorldSpaceLightPos0.xyz - vertexWorldPos.xyz);
 
 

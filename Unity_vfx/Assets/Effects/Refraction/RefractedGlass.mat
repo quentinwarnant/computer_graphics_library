@@ -68,7 +68,7 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _RefractionIndex: 0.956
-    - _RefractionIndexInside: 1.106
+    - _RefractionIndexInside: 1.087
     - _RefractionIndexOutside: 1.003
     - _Shininess: 0
     - _Smoothness: 0.5
