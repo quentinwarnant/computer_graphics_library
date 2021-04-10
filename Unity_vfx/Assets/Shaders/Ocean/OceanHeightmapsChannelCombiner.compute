@@ -1,0 +1,19 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+Texture2D<float4> DX;
+Texture2D<float4> DY;
+Texture2D<float4> DZ;
+
+RWTexture2D<float4> CombinedTex;
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    CombinedTex[id.xy] = float4(
+        DX[id.xy].r,
+        DY[id.xy].r,
+        DZ[id.xy].r,
+        1.0
+    );
+}

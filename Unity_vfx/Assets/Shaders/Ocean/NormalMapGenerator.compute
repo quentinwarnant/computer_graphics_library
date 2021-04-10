@@ -1,0 +1,33 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+Texture2D<float4> Heightmap;
+RWTexture2D<float4> Result;
+
+int N; //Dimension
+float NormalStrength;
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.xy) ;/// float(N);
+    float texelSize = 1.0/float(N);
+
+    float z0 = Heightmap[ uv + float2(-texelSize,-texelSize)].r;
+	float z1 = Heightmap[ uv + float2(0,-texelSize)].r;
+	float z2 = Heightmap[ uv + float2(texelSize,-texelSize)].r;
+	float z3 = Heightmap[ uv + float2(-texelSize,0)].r;
+	float z4 = Heightmap[ uv + float2(texelSize,0)].r;
+	float z5 = Heightmap[ uv + float2(-texelSize,texelSize)].r;
+	float z6 = Heightmap[ uv + float2(0,texelSize)].r;
+	float z7 = Heightmap[ uv + float2(texelSize,texelSize)].r;
+	 
+    float3 normal;
+	
+	// Sobel Filter
+	normal.z = 1.0/NormalStrength;
+	normal.x = z0 + 2*z3 + z5 - z2 - 2*z4 - z7;
+	normal.y = z0 + 2*z1 + z2 -z5 - 2*z6 - z7;
+	
+	Result[id.xy] = float4(normalize(normal),1);
+}

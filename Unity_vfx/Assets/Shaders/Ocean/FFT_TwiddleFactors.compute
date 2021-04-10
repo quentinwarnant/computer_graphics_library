@@ -1,0 +1,68 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+static const float PI = 3.14159265;
+
+StructuredBuffer<int> bit_reversed;
+
+struct Complex
+{
+    float real;
+    float im;
+};
+
+int N;
+
+RWTexture2D<float4> OutButterflyTex;
+
+Complex MakeComplex(float real, float im)
+{
+    Complex c;
+    c.real = real;
+    c.im = im;
+    return c;
+}
+
+[numthreads(1,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 x = id.xy;
+    float k = fmod(x.y * ( float(N)/pow(2,x.x+1)), N );
+    Complex twiddle = MakeComplex( 
+        cos(2.0 * PI * k / float(N)),
+        sin(2.0 * PI * k / float(N))
+    );
+
+    int butterflySpan = int(pow(2,x.x));
+    int butterflyWing;
+
+    if( fmod(x.y, pow(2, x.x+1)) < pow(2, x.x)){
+        butterflyWing = 1;
+    }else{
+        butterflyWing = 0;
+    }
+
+    //First stage: bit reversed
+    if( x.x == 0)
+    {
+        if( butterflyWing == 1) //Top wing
+        {
+            OutButterflyTex[x] = float4(twiddle.real, twiddle.im, bit_reversed[x.y], bit_reversed[x.y+1] );
+        }
+        else // bottom wing
+        {
+            OutButterflyTex[x] = float4(twiddle.real, twiddle.im, bit_reversed[x.y-1], bit_reversed[x.y] );
+        }
+    }
+    else // Second to Log2(N) stage
+    {
+        if( butterflyWing == 1) //Top wing
+        {
+            OutButterflyTex[x] = float4(twiddle.real, twiddle.im, x.y, x.y+butterflySpan );
+        }
+        else // bottom wing
+        {
+            OutButterflyTex[x] = float4(twiddle.real, twiddle.im, x.y-butterflySpan, x.y );
+        }
+    }
+
+}

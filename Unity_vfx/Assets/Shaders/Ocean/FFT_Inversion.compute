@@ -1,0 +1,40 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+
+
+int pingpong;
+int N;
+
+
+Texture2D<float4> TexPingPong0;
+Texture2D<float4> TexPingPong1;
+RWTexture2D<float4> OutHeightDisplacement;
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint2 x = id.xy;
+    float perms[] = {1.0, -1.0};
+    int index = int(fmod( int(x.x+x.y) ,2));
+    float perm = perms[index];
+
+    if(pingpong == 0)
+    {
+        float height = TexPingPong0[x].r;
+        OutHeightDisplacement[x] = float4(
+                perm * (height/float(N*N)),
+                perm * (height/float(N*N)),
+                perm * (height/float(N*N)),
+                1);
+    } 
+    else if(pingpong == 1)
+    {
+        float height = TexPingPong1[x].r;
+        OutHeightDisplacement[x] = float4(
+                perm * (height/float(N*N)),
+                perm * (height/float(N*N)),
+                perm * (height/float(N*N)),
+                1);
+    }
+}

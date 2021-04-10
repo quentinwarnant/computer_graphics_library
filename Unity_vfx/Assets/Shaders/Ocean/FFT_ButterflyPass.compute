@@ -1,0 +1,126 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+static const float PI = 3.14159265;
+
+int direction;
+int stage;
+int pingpong;
+
+Texture2D<float4> InButterflyTex;
+RWTexture2D<float4> TexPingPong0;
+RWTexture2D<float4> TexPingPong1;
+
+struct Complex
+{
+    float real;
+    float im;
+};
+
+
+Complex MakeComplex(float real, float im)
+{
+    Complex c;
+    c.real = real;
+    c.im = im;
+    return c;
+}
+
+
+Complex mul(Complex c0, Complex c1){
+
+    Complex res;
+    res.real = c0.real * c1.real - c0.im * c1.im;
+    res.im = c0.real * c1.im + c0.im * c1.real;
+    return res;
+}
+
+Complex add(Complex c0, Complex c1)
+{
+    Complex res;
+    res.real = c0.real + c1.real;
+    res.im = c0.im + c1.im;
+    return res;
+}
+
+void HorizontalButterflies(uint2 x)
+{
+    Complex H;
+    if( pingpong == 0)
+    {
+        float4 data = InButterflyTex[int2(stage,x.x)].rgba;
+        float2 p_ = TexPingPong0[int2(data.z, x.y)].rg;
+        float2 q_ = TexPingPong0[int2(data.w, x.y)].rg;
+        float2 w_ = float2(data.x,data.y);
+
+        Complex p = MakeComplex(p_.x,p_.y);
+        Complex q = MakeComplex(q_.x,q_.y);
+        Complex w = MakeComplex(w_.x,w_.y);
+
+        H = add(p, mul(w,q));
+
+        TexPingPong1[x] = float4(H.real, H.im , 0, 1);
+    }
+    else
+    {
+        float4 data = InButterflyTex[int2(stage,x.x)].rgba;
+        float2 p_ = TexPingPong1[int2(data.z, x.y)].rg;
+        float2 q_ = TexPingPong1[int2(data.w, x.y)].rg;
+        float2 w_ = float2(data.x,data.y);
+
+        Complex p = MakeComplex(p_.x,p_.y);
+        Complex q = MakeComplex(q_.x,q_.y);
+        Complex w = MakeComplex(w_.x,w_.y);
+
+        H = add(p, mul(w,q));
+
+        TexPingPong0[x] =  float4(H.real, H.im , 0, 1);
+    }
+}
+
+
+void VerticalButterflies(uint2 x)
+{
+    Complex H;
+    if( pingpong == 0)
+    {
+        float4 data = InButterflyTex[int2(stage,x.y)].rgba;
+        float2 p_ = TexPingPong0[int2(x.x, data.z)].rg;
+        float2 q_ = TexPingPong0[int2(x.x, data.w)].rg;
+        float2 w_ = float2(data.x,data.y);
+
+        Complex p = MakeComplex(p_.x,p_.y);
+        Complex q = MakeComplex(q_.x,q_.y);
+        Complex w = MakeComplex(w_.x,w_.y);
+
+        H = add(p, mul(w,q));
+
+        TexPingPong1[x] = float4(H.real, H.im , 0, 1);
+    }
+    else
+    {
+        float4 data = InButterflyTex[int2(stage,x.y)].rgba;
+        float2 p_ = TexPingPong1[int2(x.x, data.z)].rg;
+        float2 q_ = TexPingPong1[int2(x.x, data.w)].rg;
+        float2 w_ = float2(data.x,data.y);
+
+        Complex p = MakeComplex(p_.x,p_.y);
+        Complex q = MakeComplex(q_.x,q_.y);
+        Complex w = MakeComplex(w_.x,w_.y);
+
+        H = add(p, mul(w,q));
+
+        TexPingPong0[x] = float4(H.real, H.im , 0, 1);
+    }
+}
+
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if( direction == 0)
+    {
+        HorizontalButterflies(id.xy);
+    }else if(direction == 1){
+        VerticalButterflies(id.xy);
+    }
+}

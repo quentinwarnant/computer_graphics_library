@@ -1,0 +1,104 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+static const float PI = 3.14159265;
+
+Texture2D<float4> InTexH0k;
+Texture2D<float4> InTexH0Minusk;
+
+RWTexture2D<float4> OutTexH0_XT_dy;
+RWTexture2D<float4> OutTexH0_XT_dx;
+RWTexture2D<float4> OutTexH0_XT_dz;
+
+int N;
+int L;
+float t; // time
+
+int Dimension;
+
+
+struct Complex{
+    float real;
+    float im;
+};
+
+Complex MakeComplex(float real, float im){
+    Complex c;
+    c.real = real;
+    c.im = im;
+    return c;
+}
+
+Complex mul(Complex c0, Complex c1){
+
+    Complex res;
+    res.real = c0.real * c1.real - c0.im * c1.im;
+    res.im = c0.real * c1.im + c0.im * c1.real;
+    return res;
+}
+
+Complex add(Complex c0, Complex c1)
+{
+    Complex res;
+    res.real = c0.real + c1.real;
+    res.im = c0.im + c1.im;
+    return res;
+}
+
+Complex conj(Complex c)
+{
+    Complex conjugate;
+    conjugate.real = c.real;
+    conjugate.im = -c.im;
+    return conjugate;
+}
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float2 x =  id.xy - (float(N)/2.0);
+    float2 k = float2( 2.0 * PI * x.x/L, 2.0 * PI * x.y/L);
+    float magnitude = length(k);
+    if(magnitude < 0.00001){
+        magnitude = 0.00001;
+    }
+
+    float w = sqrt(9.81 * magnitude);
+    float2 h0kVal = InTexH0k[id.xy].rg;
+    float2 h0minuskVal = InTexH0Minusk[id.xy].rg;
+
+    Complex fourrier_cmp = MakeComplex(h0kVal.x, h0kVal.y);
+    Complex fourrier_cmp_conj = conj(MakeComplex(h0minuskVal.x, h0minuskVal.y));
+    
+    float cos_w_t = cos(w*t);
+    float sin_w_t = sin(w*t);
+    
+    //Euler formula
+    Complex exp_iwt = MakeComplex(cos_w_t, sin_w_t);
+    Complex exp_iwt_inv = MakeComplex(cos_w_t, -sin_w_t);
+
+    Complex hk_t_dy = add(
+                            mul(fourrier_cmp, exp_iwt),
+                            mul(fourrier_cmp_conj, exp_iwt_inv)
+                        );
+
+    // dx
+    Complex dx = MakeComplex(0.0, -k.x/magnitude);
+    Complex hk_t_dx = mul(dx, hk_t_dy);
+
+    // dz
+    Complex dz = MakeComplex(0.0, -k.y/magnitude);
+    Complex hk_t_dz = mul(dz, hk_t_dy);
+
+
+    // Y displacement
+    OutTexH0_XT_dy[id.xy] = float4(hk_t_dy.real, hk_t_dy.im, 0.0, 1.0);
+
+    // X displacement
+    OutTexH0_XT_dx[id.xy] = float4(hk_t_dx.real, hk_t_dx.im, 0.0, 1.0);
+
+    // Z displacement
+    OutTexH0_XT_dz[id.xy] = float4(hk_t_dz.real, hk_t_dz.im, 0.0, 1.0);
+
+
+
+}

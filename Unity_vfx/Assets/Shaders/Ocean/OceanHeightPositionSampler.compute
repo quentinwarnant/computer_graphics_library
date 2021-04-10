@@ -1,0 +1,12 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+//float2 PointPos; // Horizontal plane
+RWStructuredBuffer<float2> Positions;
+Texture2D<float4> Heightmap;
+
+[numthreads(2,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    Positions[id.x] = float2( 0, Heightmap[ int2(Positions[id.x].xy) ].x * 2.0f ); // Amplitude
+}

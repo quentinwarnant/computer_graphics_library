@@ -1,0 +1,84 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+static const float PI = 3.14159265;
+
+RWTexture2D<float4> OutTexTildeH0K;
+RWTexture2D<float4> OutTexTildeH0MinusK;
+
+Texture2D<float4> noiseTex1;
+Texture2D<float4> noiseTex2;
+Texture2D<float4> noiseTex3;
+Texture2D<float4> noiseTex4;
+
+int Dimension;
+
+int N; // FFT resolution (256)
+int L; // Horizontal Dimension (1024)
+float A;    // Amplitude
+float2 WindDir;
+float WindSpeed;
+
+const float grav = 9.81;
+
+
+float4 GausRND(float2 uv)
+{
+   // float2 uv = (id.xy)  / float(N);
+
+    float Dim = float(Dimension);
+    float noise00 = clamp( noiseTex1[uv].r , 0.001, 1.0); 
+    float noise01 = clamp( noiseTex2[uv].r , 0.001, 1.0); 
+    float noise02 = clamp( noiseTex3[uv].r , 0.001, 1.0); 
+    float noise03 = clamp( noiseTex4[uv].r , 0.001, 1.0); 
+
+    float u0 = 2.0 * PI * noise00;
+    float v0 = sqrt(-2.0 * log( noise01 ) );
+    float u1 = 2.0 * PI * noise02;
+    float v1 = sqrt(-2.0 * log( noise03 ) );
+
+    float4 rnd = float4( v0 * cos(u0), v0 * sin(u0), v1 * cos(u1), v1 * sin(u1) );
+
+
+    return rnd;
+}
+
+[numthreads(16,16,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    //Adding offset to center
+    float2 x = (id.xy)  - (float(N)/2.0);
+    //float2 x = float2(Dimension/2.0, Dimension/2.0 ) - float2(id.xy) - float(N)/2.0;
+    float2 k = float2(2.0 * PI * x.x/L,  2.0 * PI * x.y/L);
+    float L_ = (WindSpeed*WindSpeed)/grav;
+    float mag = length(k);
+    if( mag < 0.00001){
+        mag = 0.00001;
+    }
+    float magSqr = mag*mag;
+
+    //sqrt(Ph(k))/sqrt( 2 )
+    float h0k = clamp( sqrt( ( A / (magSqr*magSqr))
+        * pow(dot(normalize(k), normalize(WindDir)), 6.0)
+        * exp( -(1.0/(magSqr*L_*L_ )))
+        * exp(-magSqr * pow( L/2000.0, 2.0) )
+        ) / sqrt(2.0),
+        -4000,
+        4000
+      );
+
+    //sqrt(Ph(-k))/sqrt( 2 )
+    float h0MinusK = clamp( sqrt( ( A / (magSqr*magSqr))
+        * pow(dot(normalize(-k), normalize(WindDir)), 6.0)
+        * exp( -(1.0/(magSqr*L_*L_ )))
+        * exp(-magSqr * pow( L/2000.0, 2.0) )
+        ) / sqrt(2.0),
+        -4000,
+        4000
+      );
+
+    float2 uv = float2(id.xy);// float(N);
+    float4 gausRandVal = GausRND( uv ); 
+
+    OutTexTildeH0K[id.xy] = float4( gausRandVal.xy * h0k ,0, 1);
+    OutTexTildeH0MinusK[id.xy] = float4( gausRandVal.zw * h0MinusK ,0, 1);
+}
