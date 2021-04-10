@@ -6,8 +6,8 @@ public class PostFXBloom : MonoBehaviour
 {
 	Camera m_cam;
 
-	[SerializeField] RenderTexture m_targetRT;
-	[SerializeField] Material m_postFXMat;
+	[SerializeField] RenderTexture m_targetRT = default;
+	[SerializeField] Material m_postFXMat = default;
 
 	[ContextMenu("Init")]
 	public void Init()

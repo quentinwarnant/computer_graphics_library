@@ -5,7 +5,7 @@ using UnityEngine;
 //[ExecuteInEditMode]
 public class Rotator3D : MonoBehaviour
 {
-    [SerializeField]    Vector3 m_rotationDir;
+    [SerializeField]    Vector3 m_rotationDir  = default;
     [SerializeField]    float m_rotSpeed = 1;
 
 

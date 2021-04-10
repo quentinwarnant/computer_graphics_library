@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class ParticleAttractor : MonoBehaviour 
 {
-	[SerializeField] ParticleSystem m_particleSystem;
+	[SerializeField] ParticleSystem m_particleSystem = default;
 	ParticleSystem.Particle[] m_particles;
 	[SerializeField] float m_radius = 5;
 
-	[SerializeField] float m_rotationSpeed;
+	[SerializeField] float m_rotationSpeed = default;
 
 	[SerializeField] [Range(0,1)] float m_lerpToCore = 0;
 

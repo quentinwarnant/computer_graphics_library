@@ -1,0 +1,94 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> OutTex;
+
+RWStructuredBuffer<float3> motorDirs;
+RWStructuredBuffer<float> deltaTimes;
+
+RWStructuredBuffer<float3> entityPos;
+RWStructuredBuffer<float3> entityMoveDirs;
+
+RWStructuredBuffer<uint> testFloats;
+
+float _DeltaTime;
+float _Dimension;
+
+
+[numthreads(8,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x == 0){
+        testFloats[0] = reversebits(8) ;
+
+    }
+    //Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    float dt = _DeltaTime *1;
+
+    uint idx = id.x + id.y * 4; //MotorID
+    deltaTimes[idx] = (deltaTimes[idx] + dt) % 6.183;
+
+    float dirChangeSpeed = 10.0;
+    float3 interpolatedDir = motorDirs[ idx ];// + float3(cos(deltaTimes[idx] * dirChangeSpeed) , (-sin(deltaTimes[idx] * dirChangeSpeed)), 0.0);
+
+    // Entities
+
+ //   float2 uv = float2(id.x % 8, floor(id.x/4)) * (_Dimension/8 ) + (_Dimension/16);
+
+
+     for(int x = 0; x<_Dimension;x++ ){
+            for(int y = 0; y<_Dimension;y++ ){
+                //float2 uv =float2(x,y); 
+                float2 uv = float2(x,y);
+                    OutTex[uv] -= (float4(1.0,1.0,1.0,0) /32.0) * 0.71; 
+                    OutTex[uv] = max(0,OutTex[id.xy].xyzw);
+            }
+     }
+
+    const float circleRadius = 10;
+    if( idx <= 0){
+
+        entityMoveDirs[idx] = normalize(entityMoveDirs[idx] + interpolatedDir);
+        entityPos[idx] +=entityMoveDirs[idx];
+
+        if(entityPos[idx].x < 0 ) {
+            entityPos[idx].x += _Dimension;
+        };
+        if(entityPos[idx].x >= _Dimension ) {
+            entityPos[idx].x -= _Dimension;
+        };
+        if(entityPos[idx].y < 0 ) {
+            entityPos[idx].y += _Dimension;
+        };
+        if(entityPos[idx].y >= _Dimension ) {
+            entityPos[idx].y -= _Dimension;
+        };
+        
+        entityPos[idx].xy = max(0, entityPos[idx].xy);
+
+        for(int x = 0; x<_Dimension;x++ ){
+            for(int y = 0; y<_Dimension;y++ ){
+                float2 uv = float2(x,y);
+//                float distEnt = step( length( entityPos[idx].xy - uv), circleRadius);
+                float distEnt = 1- (min(20,length( uv - entityPos[idx].xy ))  / 20);
+                distEnt = clamp(distEnt, 0.1,1.0);
+                if( distEnt > 0.1)
+                {
+                    float3 col = distEnt;
+
+                    //float4 TexCol = OutTex[uv];
+                    OutTex[uv] +=float4( col, 1);
+                }
+            }
+        }
+    }
+
+   // col = float3(distEnt.xxx);
+    //float3 col = ( motorDirs[idx] ); 
+//    float3 col = ( deltaTimes[idx] ); 
+   // float3 col = float3(id.xy / (_Dimension) ,0); //UV interpolated
+
+   // OutTex[uv] = float4( col, 1);
+}
