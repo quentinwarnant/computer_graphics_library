@@ -4,9 +4,10 @@
 //float2 PointPos; // Horizontal plane
 RWStructuredBuffer<float2> Positions;
 Texture2D<float4> Heightmap;
+float Amplitude;
 
 [numthreads(2,1,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    Positions[id.x] = float2( 0, Heightmap[ int2(Positions[id.x].xy) ].x * 2.0f ); // Amplitude
+    Positions[id.x] = float2( 0, Heightmap[ int2(Positions[id.x].xy) ].x * Amplitude ); // Amplitude
 }

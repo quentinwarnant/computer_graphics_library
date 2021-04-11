@@ -13,9 +13,6 @@ int N;
 int L;
 float t; // time
 
-int Dimension;
-
-
 struct Complex{
     float real;
     float im;
@@ -98,7 +95,4 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     // Z displacement
     OutTexH0_XT_dz[id.xy] = float4(hk_t_dz.real, hk_t_dz.im, 0.0, 1.0);
-
-
-
 }

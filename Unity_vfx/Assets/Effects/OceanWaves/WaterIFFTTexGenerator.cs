@@ -39,7 +39,6 @@ public class WaterIFFTTexGenerator : MonoBehaviour
     [SerializeField]
     MeshRenderer m_meshRendererOcean = default;
 
-    [SerializeField] int Dimension = 1024;
     [SerializeField] int N = 32; // sample count/Resolution
     [SerializeField] int L = 1024; // horizontal dimension of patch
     [SerializeField] float A = 10.0f; // "A Numeric constant  globally affecting heights of the waves"
@@ -106,7 +105,6 @@ public class WaterIFFTTexGenerator : MonoBehaviour
 
     int[] m_reversedBits;
 
-
     //Consumers
     [SerializeField] WaterFloater m_surfer = default;
 
@@ -116,8 +114,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         //--------------------------------------------------------------------
         // Initial frequency domain textures ~h0(k) & ~h0(-k)
         //--------------------------------------------------------------------
-
-        rtTildeH0K = new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtTildeH0K = new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtTildeH0K.enableRandomWrite = true;
         rtTildeH0K.autoGenerateMips = false;
         rtTildeH0K.filterMode = FilterMode.Point;
@@ -126,7 +123,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         m_meshRendererH0K.material.SetTexture("_MainTex",rtTildeH0K);
 
 
-        rtTildeH0MinusK = new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtTildeH0MinusK = new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtTildeH0MinusK.enableRandomWrite = true;
         rtTildeH0MinusK.autoGenerateMips = false;
         rtTildeH0MinusK.filterMode = FilterMode.Point;
@@ -137,8 +134,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         //--------------------------------------------------------------------
         // ~h(k,t) Displacements in frequency domain (x,y,z) - x & z for choppy waves
         //--------------------------------------------------------------------
-
-        rtH0XT_dy = new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtH0XT_dy = new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtH0XT_dy.enableRandomWrite = true;
         rtH0XT_dy.autoGenerateMips = false;
         rtH0XT_dy.filterMode = FilterMode.Point;
@@ -146,7 +142,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
 
         m_meshRendererHKT_DY.material.SetTexture("_MainTex",rtH0XT_dy);
 
-        rtH0XT_dx = new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtH0XT_dx = new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtH0XT_dx.enableRandomWrite = true;
         rtH0XT_dx.autoGenerateMips = false;
         rtH0XT_dx.filterMode = FilterMode.Point;
@@ -154,7 +150,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
 
         m_meshRendererHKT_DX.material.SetTexture("_MainTex",rtH0XT_dx);
 
-        rtH0XT_dz = new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtH0XT_dz = new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtH0XT_dz.enableRandomWrite = true;
         rtH0XT_dz.autoGenerateMips = false;
         rtH0XT_dz.filterMode = FilterMode.Point;
@@ -166,7 +162,6 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         //--------------------------------------------------------------------
         // IFFT textures
         //--------------------------------------------------------------------
-
         log_2_N = (int) (Math.Log(N)/Math.Log(2));
         rtButterflyTex = new RenderTexture(log_2_N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtButterflyTex.enableRandomWrite = true;
@@ -177,7 +172,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         m_meshRendererButterflyTex.material.SetTexture("_MainTex",rtButterflyTex);
 
         //Ping Pong 0
-        rtPingPong0= new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtPingPong0= new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtPingPong0.enableRandomWrite = true;
         rtPingPong0.autoGenerateMips = false;
         rtPingPong0.filterMode = FilterMode.Point;
@@ -186,7 +181,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         m_meshRendererPingPong0Tex.material.SetTexture("_MainTex",rtPingPong0);
         
         //Ping Pong 1
-        rtPingPong1= new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtPingPong1= new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtPingPong1.enableRandomWrite = true;
         rtPingPong1.autoGenerateMips = false;
         rtPingPong1.filterMode = FilterMode.Point;
@@ -199,31 +194,31 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         // Result Heightmap
         //--------------------------------------------------------------------
         
-        rtHeightMap_y= new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtHeightMap_y= new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtHeightMap_y.enableRandomWrite = true;
         rtHeightMap_y.autoGenerateMips = false;
         rtHeightMap_y.filterMode = FilterMode.Bilinear;
         rtHeightMap_y.Create();
 
-        rtHeightMap_x= new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtHeightMap_x= new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtHeightMap_x.enableRandomWrite = true;
         rtHeightMap_x.autoGenerateMips = false;
         rtHeightMap_x.filterMode = FilterMode.Bilinear;
         rtHeightMap_x.Create();
 
-        rtHeightMap_z= new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtHeightMap_z= new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtHeightMap_z.enableRandomWrite = true;
         rtHeightMap_z.autoGenerateMips = false;
         rtHeightMap_z.filterMode = FilterMode.Bilinear;
         rtHeightMap_z.Create();
 
-        rtHeightMapFinal= new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtHeightMapFinal= new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtHeightMapFinal.enableRandomWrite = true;
         rtHeightMapFinal.autoGenerateMips = false;
         rtHeightMapFinal.filterMode = FilterMode.Bilinear;
         rtHeightMapFinal.Create();
 
-        rtNormalMap = new RenderTexture(Dimension,Dimension,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+        rtNormalMap = new RenderTexture(N,N,0,RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
         rtNormalMap.enableRandomWrite = true;
         rtNormalMap.autoGenerateMips = false;
         rtNormalMap.filterMode = FilterMode.Bilinear;
@@ -266,7 +261,7 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         MeshFilter meshFilter = m_meshRendererOcean.GetComponent<MeshFilter>();
         //Assuming an even size & scale on horizontal plane
         float OceanSurfaceDimension = meshFilter.sharedMesh.bounds.size.x * m_meshRendererOcean.transform.localScale.x;
-        m_surfer.Init(rtHeightMap_y, OceanSurfaceDimension);
+        m_surfer.Init(rtHeightMap_y, OceanSurfaceDimension, m_meshRendererOcean.material.GetFloat("_AmplitudeMult"));
     }
 
     int[] GetReversedBits()
@@ -285,7 +280,6 @@ public class WaterIFFTTexGenerator : MonoBehaviour
 		}
 		
 		return bitReversedIndices;
-
     }
 
     public static string Reverse( string s )
@@ -304,15 +298,13 @@ public class WaterIFFTTexGenerator : MonoBehaviour
     [ContextMenu("RunSpectrumComputeShader")]
     void RunSpectrumComputeShader()
     {
-        m_h0kcs.SetInt("Dimension",Dimension);
-
         m_h0kcs.SetInt("N",N);
         m_h0kcs.SetInt("L",L);
         m_h0kcs.SetFloat("A",A);
         m_h0kcs.SetVector("WindDir",WindDir);
         m_h0kcs.SetFloat("WindSpeed",WindSpeed);
 
-        int dimensionGroupCount = Mathf.CeilToInt( ((Dimension) / 16.0f) );
+        int dimensionGroupCount = Mathf.CeilToInt( (N / 16.0f) );
         int ThreadGroupX = dimensionGroupCount;
         int ThreadGroupY = dimensionGroupCount;
         const int ThreadGroupZ = 1;
@@ -324,13 +316,11 @@ public class WaterIFFTTexGenerator : MonoBehaviour
     [ContextMenu("RunH_KT_ComputeShader")]
     void RunH_KT_ComputeShader()
     {
-        m_FourierComponentcs.SetInt("Dimension",Dimension);
-
         m_FourierComponentcs.SetInt("N",N);
         m_FourierComponentcs.SetInt("L",L);
         m_FourierComponentcs.SetFloat("t",500+Time.time);
        
-        int dimensionGroupCount = Mathf.CeilToInt( ((N) / 16.0f) );
+        int dimensionGroupCount = Mathf.CeilToInt( (N / 16.0f) );
         int ThreadGroupX = dimensionGroupCount;
         int ThreadGroupY = dimensionGroupCount;
         const int ThreadGroupZ = 1;
@@ -346,7 +336,6 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         m_TwiddleFactorcs.SetBuffer(0, "bit_reversed",m_ButterflyBitReversedBuffer);
         m_TwiddleFactorcs.SetInt("N",N);
 
-//        int dimensionGroupCount = Mathf.CeilToInt( ((Dimension) / 16.0f) );
         int ThreadGroupX = log_2_N;
         int ThreadGroupY = Mathf.CeilToInt( N/16);
         const int ThreadGroupZ = 1;
@@ -399,7 +388,6 @@ public class WaterIFFTTexGenerator : MonoBehaviour
     [ContextMenu("RunInversionPassComputeShader")]
     void RunInversionPassComputeShader(RenderTexture heightMapTarget)
     {
-
         m_Inversioncs.SetInt("N",N);
         m_Inversioncs.SetInt("pingpong",m_pingPong);
 
@@ -412,10 +400,8 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         int ThreadGroupY = dimensionGroupCount;
         const int ThreadGroupZ = 1;
         
-        
         m_Inversioncs.Dispatch(0, ThreadGroupX, ThreadGroupY, ThreadGroupZ);
     }
-
 
     void CombineHeightMapChannels()
     {
@@ -446,18 +432,14 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         const int ThreadGroupZ = 1;
         
         m_GenerateNormalMapcs.Dispatch(0, ThreadGroupX, ThreadGroupY, ThreadGroupZ);
-     
     }
-
 
     void Update(){
 
         RunH_KT_ComputeShader();
 
         //for clarity we blit this resulting texture into PingPong0, 
-        //but would be more efficient to just feed rtH0XT into pingPonging logic 
-        
-        
+        //but would be more efficient to just feed rtH0XT textures into pingPonging logic 
         Graphics.Blit( rtH0XT_dy ,rtPingPong0);
         RunButterflyPassComputeShader();
         RunInversionPassComputeShader(rtHeightMap_y);
@@ -505,8 +487,5 @@ public class WaterIFFTTexGenerator : MonoBehaviour
         rtNormalMap = null;
 
         m_ButterflyBitReversedBuffer.Release();
-
-
     }
-
 }
