@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CameraDolly : MonoBehaviour
 {
-    [SerializeField] Transform m_target;
+    [SerializeField] Transform m_target = default;
     Vector3 m_idealDistanceNormalizedDir;
     float m_idealDistance;
     [SerializeField, Range(1,40)] float m_distanceMult = 1.0f; 

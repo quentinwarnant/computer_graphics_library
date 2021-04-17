@@ -68,7 +68,7 @@ public class RenderFeature_DepthCalcFromTwoDepthBuffers : UnityEngine.Rendering.
         {
             CommandBuffer cmdBuff = CommandBufferPool.Get(m_tag);
 
-            using (new ProfilingSample(cmdBuff, m_tag))
+            using (new ProfilingScope(cmdBuff,  new ProfilingSampler( m_tag) ))
             {
                 context.ExecuteCommandBuffer(cmdBuff);
                 cmdBuff.Clear();

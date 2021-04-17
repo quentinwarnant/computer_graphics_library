@@ -73,8 +73,7 @@ public class DepthRender : UnityEngine.Rendering.Universal.ScriptableRendererFea
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmdBuff = CommandBufferPool.Get(m_tag);
-
-            using (new ProfilingSample(cmdBuff, m_tag))
+            using (new ProfilingScope(cmdBuff, new ProfilingSampler( m_tag ) ) )
             {
                 context.ExecuteCommandBuffer(cmdBuff);
                 cmdBuff.Clear();
