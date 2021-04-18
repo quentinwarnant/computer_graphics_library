@@ -1,0 +1,29 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+RWTexture3D<float> Result;
+
+int Size;
+float Diffusion;
+float Viscosity;
+float dt;
+float time;
+
+RWStructuredBuffer<float> PrevDens;
+RWStructuredBuffer<float> Dens;
+
+RWStructuredBuffer<float3> PrevVel;
+RWStructuredBuffer<float3> Vel;
+
+[numthreads(8,8,8)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float size = 128.0;
+    float halfSize = size/2.0;
+
+    uint3 uv= id.xyz;
+    uint3 effectUV = id.xyz;
+    effectUV.yz += (sin( (time*15) + (effectUV.x * .3) ) * 5.5 );
+    Result[uv] = step( length((effectUV-halfSize)/ size) , .5);
+    
+}
